@@ -1,9 +1,5 @@
 # Base image with CUDA runtime
-FROM nvidia/cuda:12.8.1-runtime-ubuntu24.04
-
-# Environment variables
-ENV HF_TOKEN=
-ENV GRADIO_ROOT=
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -14,12 +10,13 @@ ENV NO_TORCH_COMPILE=1
 
 # Install necessary system dependencies
 RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
     git \
     ffmpeg \
     python3-pip \
     python3-dev \
     python3-venv \
-    wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -45,12 +42,14 @@ COPY --chown=appuser:appuser csm /app/csm
 # Install CSM requirements
 RUN pip install --no-cache-dir -r /app/csm/requirements.txt
 
-# Copy application code directly into the CSM directory
-COPY --chown=appuser:appuser app.py /app/csm/
+# Copy requirements file
 COPY --chown=appuser:appuser requirements.txt /app/
 
 # Install Gradio and other requirements
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY --chown=appuser:appuser app.py /app/csm/
 
 # Expose the port for the Gradio web interface
 EXPOSE 7860
